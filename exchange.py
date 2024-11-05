@@ -13,19 +13,21 @@ import json
 
 
 def exchange():
-    code = combobox.get()
-    if code:
+    t_code = t_combobox.get()
+    b_code = b_combobox.get()
+    if t_code and b_code:
         try:
-            response = requests.get('https://open.er-api.com/v6/latest/USD')
+            response = requests.get(f'https://open.er-api.com/v6/latest/{b_code}')
             response.raise_for_status()
             data = response.json()
-            if code in data['rates']:
-                exchange_rate = data['rates'][code]
-                c_name = cur[code]
-                mb.showinfo('Курс обмена', f'Курс: {exchange_rate:.2f} {c_name} за 1 доллар')
+            if t_code in data['rates']:
+                exchange_rate = data['rates'][t_code]
+                t_name = cur[t_code]
+                b_name = cur[b_code]
+                mb.showinfo('Курс обмена', f'Курс: {exchange_rate:.2f} {t_name} за 1 {b_name}')
 
             else:
-                mb.showerror('Ошибка', f'Валюта {code} не найдена')
+                mb.showerror('Ошибка', f'Валюта {t_code} не найдена')
         except Exception as e:
             mb.showerror('Ошибка', f'Произошла ошибка: {e}')
     else:
@@ -33,7 +35,7 @@ def exchange():
 
 
 def update_c_label(event):
-    code = combobox.get()
+    code = t_combobox.get()
     name = cur[code]
     c_label.config(text=name)
 
@@ -47,23 +49,30 @@ cur = {
     'UZS':'Узбекский сум',
     'CHF':'Швейцарский франк',
     'AED':'Дирхам ОАЭ',
-    'CAD':'Канадский доллар'
+    'CAD':'Канадский доллар',
+    'USD':'Американский доллар'
 }
 
 window = Tk()
 window.title('Курсы обмена валют')
-window.geometry('360x180')
+window.geometry('360x300')
 
-Label(text='Введите код валюты').pack(padx=10,pady=10)
+Label(text='Базовая валюта').pack(padx=10,pady=10)
+b_combobox = ttk.Combobox(values=list(cur.keys()))
+b_combobox.pack(padx=10,pady=10)
+b_combobox.set('RUB')
+# .bind('<<ComboboxSelected>>',update_c_label)
 
-combobox = ttk.Combobox(values=list(cur.keys()))
-combobox.pack(padx=10,pady=10)
-combobox.set('RUB')
-combobox.bind('<<ComboboxSelected>>',update_c_label)
+Label(text='Целевая валюта').pack(padx=10,pady=10)
+
+t_combobox = ttk.Combobox(values=list(cur.keys()))
+t_combobox.pack(padx=10,pady=10)
+t_combobox.set('RUB')
+t_combobox.bind('<<ComboboxSelected>>',update_c_label)
 
 c_label = ttk.Label(text='Российский рубль')
 c_label.pack(padx=10,pady=10)
 
-Button(text='Получить курсы обмена к доллару', command=exchange).pack(padx=10,pady=10)
+Button(text='Получить курсы обмена', command=exchange).pack(padx=10,pady=10)
 
 window.mainloop()
